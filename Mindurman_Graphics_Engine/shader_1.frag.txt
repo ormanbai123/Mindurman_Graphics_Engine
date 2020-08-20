@@ -1,0 +1,49 @@
+#version 330 core
+out vec4 FragColor;
+
+in vec2 texCoord;
+
+struct material
+{
+    vec3 color_diffuse;
+    // vec3 color_ambient;
+    // vec3 color_specular;
+    int hasTexture;
+};
+
+uniform material frag_material;
+uniform int hasTex;
+
+uniform sampler2D myTex;
+
+void main()
+{
+    
+    //FragColor = vec4(0.2f, 1.0f, 0.4f, 1.0f);
+
+    //FragColor = texture(myTex, texCoord);
+
+//    if ( frag_material.hasTexture != 0 )
+//      {
+//         FragColor = texture(myTex, texCoord);
+//      }
+//    else {
+//         FragColor = vec4(frag_material.color_diffuse, 1.0f);
+//    }
+
+     
+     vec4 color;
+
+     if ( /*frag_material.hasTexture == 0*/  hasTex == 0 )
+      {
+         //FragColor = vec4(frag_material.color_diffuse, 1.0f);
+         color = vec4(frag_material.color_diffuse, 1.0f);
+      }
+    else {
+        // FragColor = texture(myTex, texCoord);
+         color = texture(myTex, texCoord);
+    }
+
+    FragColor = color;
+
+} 
