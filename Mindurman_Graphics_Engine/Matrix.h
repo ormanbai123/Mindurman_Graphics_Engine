@@ -1,5 +1,7 @@
 #pragma once
 
+#define math_pi 3.14159265358979323846
+
 #include <cmath>
 #include <iostream>
 
@@ -39,6 +41,16 @@ struct vec3 {
 		res.z = this->z - v2.z;
 		return res;
 	}
+	void operator += (const vec3& v2) {
+		this->x = this->x + v2.x;
+		this->y = this->y + v2.y;
+		this->z = this->z + v2.z;
+	}
+	void operator -= (const vec3& v2) {
+		this->x = this->x - v2.x;
+		this->y = this->y - v2.y;
+		this->z = this->z - v2.z;
+	}
 	vec3 getVector(const vec3& vec1, const vec3& vec2) {
 		vec3 res;
 		res.x = vec2.x - vec1.x;
@@ -53,6 +65,15 @@ struct vec3 {
 		res.z = vec1.x * vec2.y - vec2.y * vec2.x;
 		return res;
 	}
+	vec3 getNormalized() {
+		vec3 res;
+		float vecLen = this->getLength();
+		res.x = this->x / vecLen;
+		res.y = this->y / vecLen;
+		res.z = this->z / vecLen;
+		return res;
+	}
+
 	float dotProduct(const vec3& v1, const vec3& v2) {
 		return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 	}

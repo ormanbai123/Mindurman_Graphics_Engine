@@ -17,10 +17,11 @@ void Model::Draw(Shader& shader, GLuint shaderID) {
 void Model::load(const char* model_path)
 {
 	Assimp::Importer importer;
-	importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_LINE | aiPrimitiveType_LINE);
+	importer.SetPropertyInteger(AI_CONFIG_PP_SBP_REMOVE, aiPrimitiveType_POINT | aiPrimitiveType_LINE);
 	const aiScene* scene = importer.ReadFile(model_path, aiProcess_JoinIdenticalVertices | 
 		                                                 aiProcess_Triangulate |
 		                                                 aiProcess_SortByPType | 
+		                                                 aiProcess_GenNormals  |
 	                                                     aiProcess_GenUVCoords |
 		                                                 aiProcess_TransformUVCoords/*| aiProcess_FlipUVs*/);
 
@@ -100,6 +101,7 @@ Mesh Model::getMesh(aiMesh* mesh, const aiScene* scene)
 			vrtx.vNormal.y = mesh->mNormals[i].y;
 			vrtx.vNormal.z = mesh->mNormals[i].z;
 		}
+		else std::cout << "no normal";
 
 		// Copy texture coordinates
 		if (mesh->mTextureCoords[0]/*mesh->HasTextureCoords(0) == true*/) {
@@ -137,12 +139,6 @@ Mesh Model::getMesh(aiMesh* mesh, const aiScene* scene)
 		mat->GetTexture(aiTextureType_DIFFUSE, 0, &path);
 		//mat->GetTexture(aiTextureType_AMBIENT, 0, &path1);
 		//std::cout << path.C_Str() << " " /*<< path1.C_Str()*/ << std::endl;
-		
-
-		/*std::cout<< mat->GetTextureCount(aiTextureType_DIFFUSE) << "--";*/
-		//std::cout << mat->GetTextureCount(aiTextureType_AMBIENT) << "-";
-		//std::cout << mat->GetTextureCount(aiTextureType_SPECULAR) << std::endl;
-		//std::cout << path.C_Str() << "---";
 
 		/*mat->GetTexture(aiTextureType_AMBIENT, 0, &path1);
 		std::cout << path1.C_Str() << std::endl;*/
@@ -150,6 +146,10 @@ Mesh Model::getMesh(aiMesh* mesh, const aiScene* scene)
 		std::cout << path1.C_Str() << "--";*/
 
 		//std::cout << mat->GetTextureCount(aiTextureType_BASE_COLOR) << "--";
+
+		material mesh_mat;
+		aiColor3D vecColor;
+		float shine;
 
 		// NEW NEW NEW ----------Added for loop
 		if (mat->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
@@ -162,16 +162,56 @@ Mesh Model::getMesh(aiMesh* mesh, const aiScene* scene)
 				temp_tex.type = "texture_diffuse";
 				ltextures.push_back(temp_tex);
 			}
+			mesh_mat.exists = 0;
 		}
 		else {
-			material mesh_mat;
-			aiColor3D vecColor;
 			mat->Get(AI_MATKEY_COLOR_DIFFUSE, vecColor);
 			mesh_mat.diffuse.x = vecColor.r;
 			mesh_mat.diffuse.y = vecColor.g;
 			mesh_mat.diffuse.z = vecColor.b;
-			lmaterials.push_back(mesh_mat);
+			mesh_mat.exists = 1;
+		} 
+
+		mat->GetTexture(aiTextureType_SPECULAR, 0, &path);
+		if (mat->GetTextureCount(aiTextureType_SPECULAR) > 0) {
+			for (GLuint i = 0; i < mat->GetTextureCount(aiTextureType_SPECULAR); i++) {
+				texture temp_tex;
+				std::string tempS = dir + "/";
+				Textures temp(tempS + path.C_Str());
+				temp_tex.ID = temp.getTextureID();
+				temp_tex.type = "texture_specular";
+				ltextures.push_back(temp_tex);
+			}
 		}
+
+		mat->GetTexture(aiTextureType_AMBIENT, 0, &path);
+		if (mat->GetTextureCount(aiTextureType_AMBIENT) > 0) {
+			for (GLuint i = 0; i < mat->GetTextureCount(aiTextureType_AMBIENT); i++) {
+				texture temp_tex;
+				std::string tempS = dir + "/";
+				Textures temp(tempS + path.C_Str());
+				temp_tex.ID = temp.getTextureID();
+				temp_tex.type = "texture_ambient";
+				ltextures.push_back(temp_tex);
+			}
+		}
+
+		mat->Get(AI_MATKEY_COLOR_AMBIENT, vecColor);
+		mesh_mat.ambient.x = vecColor.r;
+		mesh_mat.ambient.y = vecColor.g;
+		mesh_mat.ambient.z = vecColor.b;
+		//std::cout << "Ambient " << vecColor.r << "-" << vecColor.g << "-" << vecColor.b << "//";
+
+		mat->Get(AI_MATKEY_COLOR_SPECULAR, vecColor);
+		mesh_mat.specular.x = vecColor.r;
+		mesh_mat.specular.y = vecColor.g;
+		mesh_mat.specular.z = vecColor.b;
+		//std::cout << "Specular " << vecColor.r << "-" << vecColor.g << "-" << vecColor.b << "//";
+
+		mat->Get(AI_MATKEY_SHININESS, shine);
+		mesh_mat.shininess = shine;
+
+		lmaterials.push_back(mesh_mat);
 	}
 	
 	return Mesh(verts, indices,ltextures, lmaterials);

@@ -26,6 +26,7 @@ window::window(int width, int height, const char title[]) {
     glfwMakeContextCurrent(m_win);
 
     glewInit();
+
 }
 
 window::~window() {
@@ -44,27 +45,77 @@ void window::key_callback(GLFWwindow* window, int key, int scancode, int action,
     }
 }
 
+Camera fps_cam{ vec3(0.0f, 0.0f, 2.0f), vec3(0.0f, 0.0f, -1.0f) , vec2() };
+
+void window::mouse_callback(GLFWwindow* win, double x_pos, double y_pos)
+{
+    fps_cam.input_mouse(x_pos, y_pos, fps_cam.vDir);
+}
+
 void window::input(GLFWwindow* win) {
-    if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS)
-        win_cam.z -= 0.1f;
-    if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS)
-        win_cam.z += 0.1f;
-    if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS)
-        win_cam.x -= 0.1f;
-    if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS)
-        win_cam.x += 0.1f;
+
+    /*double mouseX; double mouseY;
+    glfwGetCursorPos(win, &mouseX, &mouseY);
+    fps_cam.input_mouse(mouseX, mouseY, fps_cam.vDir);*/
+
+
+    if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS) {
+        //win_cam.z -= 0.1f;
+        fps_cam.vPos += fps_cam.vDir;
+    }
+    if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS) {
+        //win_cam.z += 0.1f;
+        fps_cam.vPos -= fps_cam.vDir;
+    }
+    if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS) {
+        //win_cam.x -= 0.1f;
+        vec3 left; left = left.getCrossProduct(fps_cam.vDir, fps_cam.vUp);
+        left.normalize();
+        fps_cam.vPos -= left;
+    }
+    if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS) {
+       // win_cam.x += 0.1f;
+        vec3 left; left = left.getCrossProduct(fps_cam.vDir, fps_cam.vUp);
+        left.normalize();
+        fps_cam.vPos += left;
+    }
+
     if (glfwGetKey(win, GLFW_KEY_UP) == GLFW_PRESS) {
-        win_cam.y += 0.1f;
+        //win_cam.y += 0.1f;
+        fps_cam.vPos += fps_cam.vUp;
     }
     if (glfwGetKey(win, GLFW_KEY_DOWN) == GLFW_PRESS) {
-        win_cam.y -= 0.1f;
+       // win_cam.y -= 0.1f;
+        fps_cam.vPos -= fps_cam.vUp;
     }
+
+    // Moving light
+    if (glfwGetKey(win, GLFW_KEY_I) == GLFW_PRESS) {
+        light += vec3(0.0f, 0.0f, 1.0f);
+    }
+    if (glfwGetKey(win, GLFW_KEY_J) == GLFW_PRESS) {
+        light += vec3(-1.0f, 0.0f, 0.0f);
+    }
+    if (glfwGetKey(win, GLFW_KEY_K) == GLFW_PRESS) {
+        light += vec3(0.0f, 0.0f, -1.0f);
+    }
+    if (glfwGetKey(win, GLFW_KEY_L) == GLFW_PRESS) {
+        light += vec3(1.0f, 0.0f, 0.0f);
+    }
+    if (glfwGetKey(win, GLFW_KEY_U) == GLFW_PRESS) {
+        light += vec3(0.0f, 1.0f, 0.0f);
+    }
+    if (glfwGetKey(win, GLFW_KEY_O) == GLFW_PRESS) {
+        light += vec3(0.0f, -1.0f, 0.0f);
+    }
+
 }
 
 void window::begin() {
     std::cout << glGetString(GL_VERSION) << std::endl; // Check OpenGL version
 
     glfwSetKeyCallback(m_win, key_callback);
+    glfwSetCursorPosCallback(m_win, mouse_callback);
 
     Shader myshader("shader_1.vert.txt", "shader_1.frag.txt");
     GLuint program = myshader.rtrnProgram();
@@ -109,13 +160,12 @@ void window::begin() {
         0, 2, 1
     };*/
     
-    vec3 cam = vec3(0.0f, 0.0f, 2.0f);
-    vec3 target = vec3(0.0f, 0.0f, -1.0f);
-    vec3 camUp = vec3(0.0f, 1.0f, 0.0f);
+    glfwSetInputMode(m_win, GLFW_CURSOR, GLFW_CURSOR_DISABLED); 
+    fps_cam.set_win_centre(vec2(winWidth/2, winHeight/2));
 
     mat4x4 transmat; transmat.makeTranslation(0.0f, 2.0f, -6.0f);
-    mat4x4 viewmat; viewmat.makeView(cam, vec3(cam+target), camUp);
-    mat4x4 testmat; /*testmat.makeIdentity(); */ /*float pi = 3.14159f;*/ testmat.makePerspective(0.1f, 100.0f, pi / 2, winaspectRatio);
+    mat4x4 viewmat; /*viewmat.makeView(cam, vec3(cam + target), camUp);*/ viewmat.makeView(fps_cam.vPos, fps_cam.vPos + fps_cam.vDir, fps_cam.vUp);
+    mat4x4 testmat; /*testmat.makeIdentity(); */ testmat.makePerspective(0.1f, 100.0f, math_pi / 2, winaspectRatio);
 
     /*GLuint tran = glGetUniformLocation(program, "transform");
     glUniformMatrix4fv(tran, 1, GL_FALSE, &testmat.mat5[0]);
@@ -219,7 +269,7 @@ void window::begin() {
 
     while (!glfwWindowShouldClose(m_win)) {
 
-        input(m_win);
+        input(m_win); 
 
         cls();
 
@@ -227,8 +277,13 @@ void window::begin() {
 
         glUseProgram(program);
 
-        GLuint u_view = glGetUniformLocation(program, "view"); viewmat.makeView(win_cam, vec3(win_cam + target), camUp); glUniformMatrix4fv(u_view, 1, GL_FALSE, &viewmat.mat4[0][0]);
-        //GLuint u_view = glGetUniformLocation(program, "view"); glUniformMatrix4fv(u_view, 1, GL_FALSE, &transmat.mat4[0][0]);
+        // Set lighting uniforms
+        glUniform3f(glGetUniformLocation(program, "cameraDir"), fps_cam.vPos.x, fps_cam.vPos.y, fps_cam.vPos.z);
+        glUniform3f(glGetUniformLocation(program, "lightPosition"), light.x, light.y, light.z);
+
+        // Set matrix uniforms
+        GLuint u_view = glGetUniformLocation(program, "view"); //viewmat.makeView(win_cam, vec3(win_cam + target), camUp); 
+        viewmat.makeView(fps_cam.vPos, fps_cam.vPos + fps_cam.vDir, fps_cam.vUp); glUniformMatrix4fv(u_view, 1, GL_FALSE, &viewmat.mat4[0][0]);
         GLuint tran = glGetUniformLocation(program, "transform"); glUniformMatrix4fv(tran, 1, GL_FALSE, &testmat.mat4[0][0]);
 
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -239,6 +294,7 @@ void window::begin() {
         /* Poll for and process events */
         glfwPollEvents();
 
+        //MouseInput(m_win);
     }
 
     

@@ -2,19 +2,37 @@
 out vec4 FragColor;
 
 in vec2 texCoord;
+in vec3 vNormal;
+in vec3 fPos;
 
 struct material
 {
     vec3 color_diffuse;
-    // vec3 color_ambient;
-    // vec3 color_specular;
+    vec3 color_ambient;
+    vec3 color_specular;
+
+    float shine;
+
     int hasTexture;
+};
+
+struct light1
+{
+    vec3 position;
+
+    vec3 color_ka;
+    vec3 color_kd;
+    vec3 color_ks;
 };
 
 uniform material frag_material;
 uniform int hasTex;
+uniform vec3 cameraDir;
+uniform vec3 lightPosition;
 
 uniform sampler2D myTex;
+uniform sampler2D texSpec;
+uniform sampler2D texAmb;
 
 void main()
 {
@@ -32,18 +50,56 @@ void main()
 //    }
 
      
-     vec4 color;
+ //-----------------------------------------------------------
+ 
 
-     if ( /*frag_material.hasTexture == 0*/  hasTex == 0 )
+     light1 Light;
+     //Light.position = vec3(0.0f, 1.0f, -2.0f); 
+     Light.position = lightPosition;
+     Light.color_kd = vec3(0.5f, 0.5f, 0.5f);
+     Light.color_ks = vec3(1.0f, 1.0f, 1.0f);
+     Light.color_ka = vec3(0.2f, 0.2f, 0.2f);
+
+     // Calculate diffuse component
+     vec3 norm = normalize(vNormal);          // Make sure normal is unit vector
+     vec3 lightDir = normalize(Light.position - fPos);
+     float diffStr = max( dot ( norm, lightDir ), 0.0 );
+
+     // Calculate specular component
+     vec3 dir = normalize(cameraDir - fPos);
+     vec3 reflectV = reflect(-lightDir, norm);
+     float specStr = pow( max (dot ( dir, reflectV ), 0.0 ), frag_material.shine);
+
+     vec3 color; 
+     vec3 cDiff; vec3 cSpec; vec3 cAmb;
+
+     if ( hasTex == 0 )
       {
-         //FragColor = vec4(frag_material.color_diffuse, 1.0f);
-         color = vec4(frag_material.color_diffuse, 1.0f);
+         //color = vec4(frag_material.color_diffuse, 1.0f) * diffStr * Light.color_kd;
+         cDiff = Light.color_kd * diffStr * frag_material.color_diffuse;
+         cAmb = frag_material.color_diffuse * Light.color_ka;
       }
     else {
         // FragColor = texture(myTex, texCoord);
-         color = texture(myTex, texCoord);
+         cDiff = texture(myTex, texCoord).rgb * diffStr * Light.color_kd;
+         cAmb = texture(myTex, texCoord).rgb * Light.color_ka;
     }
 
-    FragColor = color;
+    if ( frag_material.color_specular.x == 0 && frag_material.color_specular.y == 0 && frag_material.color_specular.z == 0 )
+    {
+       cSpec = Light.color_ks * specStr * texture(texSpec, texCoord).rgb;
+    }
+    else
+    {
+       cSpec = Light.color_ks * specStr * frag_material.color_specular; 
+    }
+
+    //cSpec = Light.color_ks * specStr * texture(texSpec, texCoord).rgb;
+    //cAmb = Light.color_ka * texture(texAmb, texCoord).rgb;
+
+    //cAmb = frag_material.color_diffuse * Light.color_ka;
+
+    color = cDiff + cSpec + cAmb;
+    FragColor = vec4(color, 1.0);
 
 } 

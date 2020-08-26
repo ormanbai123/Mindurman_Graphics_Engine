@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <vector>
 #include "GL/glew.h"
 #include "Matrix.h"
@@ -7,14 +8,15 @@
 
 struct texture {
 	GLuint ID = 0;
-	const char* type = nullptr;
+	std::string type;
 };
 
 struct material {
 	vec3 diffuse;
-	// vec3 specular;
-	// vec3 ambient;
-	// float shininess;
+    vec3 specular;
+	vec3 ambient;
+	float shininess;
+	int exists;
 };
 
 struct vertex {

@@ -18,7 +18,16 @@ void Mesh::drawMesh(Shader& shader, GLuint programID)
 	for (unsigned int i = 0; i < textures.size(); i++) {
 		glActiveTexture(GL_TEXTURE0 + i);
 
-		shader.setTextureUnit(programID, "myTex", i);
+		if (textures[i].type == "texture_diffuse") {
+			shader.setTextureUnit(programID, "myTex", i);
+		}
+		else if (textures[i].type == "texture_specular") {
+			shader.setTextureUnit(programID, "texSpec", i);
+		}
+		else if (textures[i].type == "texture_ambient") {
+			shader.setTextureUnit(programID, "texAmb", i);
+		}
+		//shader.setTextureUnit(programID, "myTex", i);
 
 		glBindTexture(GL_TEXTURE_2D, textures[i].ID);
 	}
@@ -28,9 +37,15 @@ void Mesh::drawMesh(Shader& shader, GLuint programID)
 	//------Materials----------
 	if (!materials.empty()) {
 		for (unsigned int i = 0; i < materials.size(); i++) {
+
 			//glUniform1i(glGetUniformLocation(programID, "frag_material.hasTexture"), 0);
-			glUniform1i(glGetUniformLocation(programID, "hasTex"), 0);
-			glUniform3f(glGetUniformLocation(programID, "frag_material.color_diffuse"), materials[i].diffuse.x, materials[i].diffuse.y, materials[i].diffuse.z);
+			if (materials[i].exists == 1) {
+				glUniform1i(glGetUniformLocation(programID, "hasTex"), 0);
+				glUniform3f(glGetUniformLocation(programID, "frag_material.color_diffuse"), materials[i].diffuse.x, materials[i].diffuse.y, materials[i].diffuse.z);
+			}
+			glUniform3f(glGetUniformLocation(programID, "frag_material.color_ambient"), materials[i].ambient.x, materials[i].ambient.y, materials[i].ambient.z);
+			glUniform3f(glGetUniformLocation(programID, "frag_material.color_specular"), materials[i].specular.x, materials[i].specular.y, materials[i].specular.z);
+			glUniform1f(glGetUniformLocation(programID, "frag_material.shine"), materials[i].shininess);
 		}
 	}
 
