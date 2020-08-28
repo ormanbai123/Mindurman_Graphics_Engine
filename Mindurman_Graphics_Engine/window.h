@@ -25,7 +25,6 @@ private:
 	void cls();
 	void input(GLFWwindow* win);
 
-	//vec3 win_cam = vec3(0.0f, 0.0f, 2.0f);
 	vec3 light = vec3(0.0f, 0.0f, 0.0f);
     //Camera fps_cam{vec3(0.0f, 0.0f, 2.0f), vec3(0.0f, 0.0f, -1.0f) , vec2(winWidth/2.0f, winHeight/2.0f)};
 };

@@ -14,7 +14,9 @@ window::window(int width, int height, const char title[]) {
     glfwWindowHint(win_res, GLFW_FALSE);
 
     // Create GLFW window
-    winHeight = height; winWidth = width; winaspectRatio = (float)height / (float)width;
+    winHeight = height; winWidth = width; //winaspectRatio = (float)height / (float)width; 
+    winaspectRatio = (float)width / (float)height;
+
 	m_win = glfwCreateWindow(winWidth, winHeight, title, NULL, NULL);
     if (!m_win)
     {
@@ -58,34 +60,29 @@ void window::input(GLFWwindow* win) {
     glfwGetCursorPos(win, &mouseX, &mouseY);
     fps_cam.input_mouse(mouseX, mouseY, fps_cam.vDir);*/
 
-
+    // Camera movement
     if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS) {
-        //win_cam.z -= 0.1f;
         fps_cam.vPos += fps_cam.vDir;
     }
     if (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS) {
-        //win_cam.z += 0.1f;
         fps_cam.vPos -= fps_cam.vDir;
     }
     if (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS) {
-        //win_cam.x -= 0.1f;
-        vec3 left; left = left.getCrossProduct(fps_cam.vDir, fps_cam.vUp);
-        left.normalize();
-        fps_cam.vPos -= left;
+        vec3 lefto; //lefto = lefto.getCrossProduct(fps_cam.vUp, fps_cam.vDir);
+        lefto = lefto.getCrossProduct(fps_cam.vDir, fps_cam.vUp);
+        lefto.normalize();
+        fps_cam.vPos -= lefto;
     }
     if (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS) {
-       // win_cam.x += 0.1f;
-        vec3 left; left = left.getCrossProduct(fps_cam.vDir, fps_cam.vUp);
-        left.normalize();
-        fps_cam.vPos += left;
+        vec3 righto; righto = righto.getCrossProduct(fps_cam.vDir, fps_cam.vUp);
+        righto.normalize();
+        fps_cam.vPos += righto;
     }
 
     if (glfwGetKey(win, GLFW_KEY_UP) == GLFW_PRESS) {
-        //win_cam.y += 0.1f;
         fps_cam.vPos += fps_cam.vUp;
     }
     if (glfwGetKey(win, GLFW_KEY_DOWN) == GLFW_PRESS) {
-       // win_cam.y -= 0.1f;
         fps_cam.vPos -= fps_cam.vUp;
     }
 
@@ -161,15 +158,11 @@ void window::begin() {
     };*/
     
     glfwSetInputMode(m_win, GLFW_CURSOR, GLFW_CURSOR_DISABLED); 
-    fps_cam.set_win_centre(vec2(winWidth/2, winHeight/2));
+    fps_cam.set_win_centre(vec2((float)winWidth/2.0f, (float)winHeight/2.0f));
 
     mat4x4 transmat; transmat.makeTranslation(0.0f, 2.0f, -6.0f);
-    mat4x4 viewmat; /*viewmat.makeView(cam, vec3(cam + target), camUp);*/ viewmat.makeView(fps_cam.vPos, fps_cam.vPos + fps_cam.vDir, fps_cam.vUp);
-    mat4x4 testmat; /*testmat.makeIdentity(); */ testmat.makePerspective(0.1f, 100.0f, math_pi / 2, winaspectRatio);
-
-    /*GLuint tran = glGetUniformLocation(program, "transform");
-    glUniformMatrix4fv(tran, 1, GL_FALSE, &testmat.mat5[0]);
-    std::cout << &testmat.mat5[0] << std::endl;*/
+    mat4x4 viewmat; viewmat.makeView(fps_cam.vPos, fps_cam.vPos + fps_cam.vDir, fps_cam.vUp);
+    mat4x4 projmat; /*testmat.makeIdentity(); */ projmat.makePerspective(0.1f, 100.0f, math_pi / 2, winaspectRatio);
 
     //GLuint VBO; glGenBuffers(1, &VBO); /*glBindBuffer(GL_ARRAY_BUFFER, VBO); 
     //glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -265,7 +258,6 @@ void window::begin() {
     //Model myModel("Models/sampleCube/cube.obj");
     //Model myModel("Models/holodeck/holodeck.obj");
     //Model myModel("Models/lEmpire/lost_empire.obj");
-    //Model myModel("Models/crytek/sponza.obj");
 
     while (!glfwWindowShouldClose(m_win)) {
 
@@ -278,13 +270,13 @@ void window::begin() {
         glUseProgram(program);
 
         // Set lighting uniforms
-        glUniform3f(glGetUniformLocation(program, "cameraDir"), fps_cam.vPos.x, fps_cam.vPos.y, fps_cam.vPos.z);
+        glUniform3f(glGetUniformLocation(program, "cameraPos"), fps_cam.vPos.x, fps_cam.vPos.y, fps_cam.vPos.z);
         glUniform3f(glGetUniformLocation(program, "lightPosition"), light.x, light.y, light.z);
 
         // Set matrix uniforms
         GLuint u_view = glGetUniformLocation(program, "view"); //viewmat.makeView(win_cam, vec3(win_cam + target), camUp); 
         viewmat.makeView(fps_cam.vPos, fps_cam.vPos + fps_cam.vDir, fps_cam.vUp); glUniformMatrix4fv(u_view, 1, GL_FALSE, &viewmat.mat4[0][0]);
-        GLuint tran = glGetUniformLocation(program, "transform"); glUniformMatrix4fv(tran, 1, GL_FALSE, &testmat.mat4[0][0]);
+        GLuint u_proj = glGetUniformLocation(program, "projection"); glUniformMatrix4fv(u_proj, 1, GL_FALSE, &projmat.mat4[0][0]);
 
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         myModel.Draw(myshader, program);
@@ -294,7 +286,6 @@ void window::begin() {
         /* Poll for and process events */
         glfwPollEvents();
 
-        //MouseInput(m_win);
     }
 
     

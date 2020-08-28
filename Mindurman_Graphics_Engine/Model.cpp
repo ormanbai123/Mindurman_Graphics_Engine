@@ -117,11 +117,8 @@ Mesh Model::getMesh(aiMesh* mesh, const aiScene* scene)
 
 	// Get mesh's indices
 	for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
-		/*aiFace* face1;
-		std::cout<<face1->mNumIndices << "--";*/
 
 		aiFace face = mesh->mFaces[i];
-		//std::cout << face.mNumIndices << "--";
 
 		for (unsigned int f = 0; f < face.mNumIndices; f++) {
 			indices.push_back(face.mIndices[f]);
@@ -132,26 +129,18 @@ Mesh Model::getMesh(aiMesh* mesh, const aiScene* scene)
  
 	// Get mesh's material
 	if (mesh->mMaterialIndex >= 0) {
-		//std::string str;
 		aiString path;
 		//aiTextureType_BASE_COLOR
 		aiMaterial* mat = scene->mMaterials[mesh->mMaterialIndex];
 		mat->GetTexture(aiTextureType_DIFFUSE, 0, &path);
+
 		//mat->GetTexture(aiTextureType_AMBIENT, 0, &path1);
-		//std::cout << path.C_Str() << " " /*<< path1.C_Str()*/ << std::endl;
-
-		/*mat->GetTexture(aiTextureType_AMBIENT, 0, &path1);
-		std::cout << path1.C_Str() << std::endl;*/
-		/*mat->GetTexture(aiTextureType_SPECULAR, 0, &path1);
-		std::cout << path1.C_Str() << "--";*/
-
 		//std::cout << mat->GetTextureCount(aiTextureType_BASE_COLOR) << "--";
 
 		material mesh_mat;
 		aiColor3D vecColor;
 		float shine;
 
-		// NEW NEW NEW ----------Added for loop
 		if (mat->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
 			for (GLuint i = 0; i < mat->GetTextureCount(aiTextureType_DIFFUSE); i++)
 			{
@@ -200,13 +189,11 @@ Mesh Model::getMesh(aiMesh* mesh, const aiScene* scene)
 		mesh_mat.ambient.x = vecColor.r;
 		mesh_mat.ambient.y = vecColor.g;
 		mesh_mat.ambient.z = vecColor.b;
-		//std::cout << "Ambient " << vecColor.r << "-" << vecColor.g << "-" << vecColor.b << "//";
 
 		mat->Get(AI_MATKEY_COLOR_SPECULAR, vecColor);
 		mesh_mat.specular.x = vecColor.r;
 		mesh_mat.specular.y = vecColor.g;
 		mesh_mat.specular.z = vecColor.b;
-		//std::cout << "Specular " << vecColor.r << "-" << vecColor.g << "-" << vecColor.b << "//";
 
 		mat->Get(AI_MATKEY_SHININESS, shine);
 		mesh_mat.shininess = shine;
