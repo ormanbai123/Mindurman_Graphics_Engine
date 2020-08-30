@@ -1,9 +1,15 @@
 #pragma once
 
-#define math_pi 3.14159265358979323846
+#define math_pi 3.14159265358979323846f
 
 #include <cmath>
 #include <iostream>
+
+//-----------Currently no library in project folder------------
+// GLM stuff
+//#include "vendor/glm/glm.hpp"
+//#include "vendor/glm/gtc/matrix_transform.hpp"
+//#include "vendor/glm/gtc/type_ptr.hpp"
 
 struct vec2 {
 	float u = 0.0f; 
@@ -51,18 +57,18 @@ struct vec3 {
 		this->y = this->y - v2.y;
 		this->z = this->z - v2.z;
 	}
-	vec3 getVector(const vec3& vec1, const vec3& vec2) {
+	vec3 getVector(const vec3& a, const vec3& b) {
 		vec3 res;
-		res.x = vec2.x - vec1.x;
-		res.y = vec2.y - vec1.y;
-		res.z = vec2.z - vec1.z;
+		res.x = b.x - a.x;
+		res.y = b.y - a.y;
+		res.z = b.z - a.z;
 		return res;
 	}
-	vec3 getCrossProduct(const vec3& vec1, const vec3& vec2) {
+	vec3 getCrossProduct(const vec3& a, const vec3& b) {
 		vec3 res;
-		res.x = vec1.y * vec2.z - vec1.z * vec2.y;
-		res.y = vec1.z * vec2.x - vec1.x * vec2.z;
-		res.z = vec1.x * vec2.y - vec2.y * vec2.x;
+		res.x = a.y * b.z - a.z * b.y;
+		res.y = a.z * b.x - a.x * b.z;
+		res.z = a.x * b.y - a.y * b.x;
 		return res;
 	}
 	vec3 getNormalized() {
@@ -95,6 +101,4 @@ public:
 	void makePerspective(float n, float f, float fov, float aspectRatio);
 	void makeView(const vec3& eye, const vec3& target, const vec3& up);
 	void makeTranslation(float x, float y, float z);
-	//float mat5[16] = { 0 };
-	//void mIdentity();
 };

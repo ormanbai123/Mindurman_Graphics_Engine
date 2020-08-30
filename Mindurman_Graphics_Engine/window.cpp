@@ -56,10 +56,6 @@ void window::mouse_callback(GLFWwindow* win, double x_pos, double y_pos)
 
 void window::input(GLFWwindow* win) {
 
-    /*double mouseX; double mouseY;
-    glfwGetCursorPos(win, &mouseX, &mouseY);
-    fps_cam.input_mouse(mouseX, mouseY, fps_cam.vDir);*/
-
     // Camera movement
     if (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS) {
         fps_cam.vPos += fps_cam.vDir;
@@ -161,8 +157,8 @@ void window::begin() {
     fps_cam.set_win_centre(vec2((float)winWidth/2.0f, (float)winHeight/2.0f));
 
     mat4x4 transmat; transmat.makeTranslation(0.0f, 2.0f, -6.0f);
-    mat4x4 viewmat; viewmat.makeView(fps_cam.vPos, fps_cam.vPos + fps_cam.vDir, fps_cam.vUp);
     mat4x4 projmat; /*testmat.makeIdentity(); */ projmat.makePerspective(0.1f, 100.0f, math_pi / 2, winaspectRatio);
+    mat4x4 viewmat; viewmat.makeView(fps_cam.vPos, fps_cam.vPos + fps_cam.vDir, fps_cam.vUp);
 
     //GLuint VBO; glGenBuffers(1, &VBO); /*glBindBuffer(GL_ARRAY_BUFFER, VBO); 
     //glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -250,9 +246,9 @@ void window::begin() {
     stbi_set_flip_vertically_on_load(true);
 
     //-----------NEW-----------------LOADING MODEL----------------------------
-    //Model myModel("Models/sponza/sponza.obj");  //teapot.obj //Sketchfab.obj classroom.obj
+    Model myModel("Models/sponza/sponza.obj");  //teapot.obj //Sketchfab.obj classroom.obj
     //Model myModel("Models/sponza_v1/sponza.obj");
-    Model myModel("Models/Door/Door.obj");
+    //Model myModel("Models/Door/Door.obj");
     //Model myModel("Models/sibenik/sibenik.obj");
     //Model myModel("Models/teapot.obj");
     //Model myModel("Models/sampleCube/cube.obj");
@@ -274,9 +270,9 @@ void window::begin() {
         glUniform3f(glGetUniformLocation(program, "lightPosition"), light.x, light.y, light.z);
 
         // Set matrix uniforms
-        GLuint u_view = glGetUniformLocation(program, "view"); //viewmat.makeView(win_cam, vec3(win_cam + target), camUp); 
-        viewmat.makeView(fps_cam.vPos, fps_cam.vPos + fps_cam.vDir, fps_cam.vUp); glUniformMatrix4fv(u_view, 1, GL_FALSE, &viewmat.mat4[0][0]);
         GLuint u_proj = glGetUniformLocation(program, "projection"); glUniformMatrix4fv(u_proj, 1, GL_FALSE, &projmat.mat4[0][0]);
+        GLuint u_view = glGetUniformLocation(program, "view"); viewmat.makeView(fps_cam.vPos, fps_cam.vPos + fps_cam.vDir, fps_cam.vUp); 
+        glUniformMatrix4fv(u_view, 1, GL_FALSE, &viewmat.mat4[0][0]);
 
         //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         myModel.Draw(myshader, program);
